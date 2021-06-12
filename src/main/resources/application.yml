@@ -11,12 +11,12 @@ spring:
     druid:
       base:
         url: jdbc:mysql://127.0.0.1:3306/scpg?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&autoReconnect=true&preferredTestQuery=select now()
-        username: root
-        password: Rzh201314
+        username: username
+        password: password
       aliyun:
         url: jdbc:mysql://127.0.0.1:3306/scpg?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&autoReconnect=true&preferredTestQuery=select now()
-        username: root
-        password: Rzh201314
+        username: username
+        password: password
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     #初始化
