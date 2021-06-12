@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scpg.sharding.demo.mapper.SaleDayMapper">
+
+    <select id="selectLeftJoinAndOrderBy" resultType="com.scpg.sharding.demo.domain.dto.MallDayDTO">
+    SELECT
+	msam.MALL_ID AS mallId,
+	msad.SALE_YMD as saleYmd
+	FROM
+	mng_sale_amount_month msam
+	LEFT JOIN mng_sale_amount_day msad ON msad.MONTH_ID = msam.ID
+	WHERE
+	msad.SALE_YMD IN ('20201202', '20210101') order by MALL_ID;
+    </select>
+</mapper>
