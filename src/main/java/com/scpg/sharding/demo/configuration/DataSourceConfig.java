@@ -7,13 +7,13 @@ import com.alibaba.druid.wall.WallConfig;
 import com.alibaba.druid.wall.WallFilter;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
-import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.type.JdbcType;
-import org.apache.shardingsphere.api.config.sharding.ShardingRuleConfiguration;
-import org.apache.shardingsphere.api.config.sharding.TableRuleConfiguration;
-import org.apache.shardingsphere.api.config.sharding.strategy.StandardShardingStrategyConfiguration;
-import org.apache.shardingsphere.shardingjdbc.api.ShardingDataSourceFactory;
+import org.apache.shardingsphere.driver.api.ShardingSphereDataSourceFactory;
+import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
+import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
+import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -24,10 +24,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @program: profile-demo
@@ -79,16 +76,21 @@ public class DataSourceConfig {
         Map<String, DataSource> targetDataSources = new HashMap<>(2);
         targetDataSources.put("base", base);
         targetDataSources.put("aliyun", aliyun);
-        // 配置 t_user 表规则
-        TableRuleConfiguration dayReportRuleConfiguration = new TableRuleConfiguration("mng_sale_amount_day", "base.mng_sale_amount_day_$->{2015..2030}0$->{1..9},base.mng_sale_amount_day_$->{2015..2030}1$->{0..2},aliyun.mng_sale_amount_day_$->{2015..2030}0$->{1..9},aliyun.mng_sale_amount_day_$->{2015..2030}1$->{0..2}");
-       // 配置分表规则  第一个精确，第二个范围
-        dayReportRuleConfiguration.setTableShardingStrategyConfig(new StandardShardingStrategyConfiguration("SALE_YMD", new DayReportPreciseShardingAlgorithm(), new DayReportPreciseShardingAlgorithm()));
+        // 配置 day_report 表规则
+        ShardingTableRuleConfiguration dayReportRuleConfiguration = new ShardingTableRuleConfiguration("mng_sale_amount_day", "base.mng_sale_amount_day_$->{2011..2030}0$->{1..9},base.mng_sale_amount_day_$->{2011..2030}1$->{0..2},aliyun.mng_sale_amount_day_$->{2011..2030}0$->{1..9},aliyun.mng_sale_amount_day_$->{2011..2030}1$->{0..2}");
+
+        // 配置分表规则  第一个精确，第二个范围
+        dayReportRuleConfiguration.setTableShardingStrategy(new StandardShardingStrategyConfiguration("SALE_YMD", "dayReportTableShardingAlgorithm"));
+
         // Sharding全局配置
-        ShardingRuleConfiguration shardingRuleConfiguration = new ShardingRuleConfiguration();
         //多表的话,就配置多个就好了
-        shardingRuleConfiguration.getTableRuleConfigs().add(dayReportRuleConfiguration);
+        ShardingRuleConfiguration shardingRuleConfiguration = new ShardingRuleConfiguration();
+        shardingRuleConfiguration.getTables().add(dayReportRuleConfiguration);
+        //分库规则配置
+
+        shardingRuleConfiguration.getShardingAlgorithms().put("dayReportTableShardingAlgorithm", new ShardingSphereAlgorithmConfiguration("dayReportRule", new Properties()));
         // 创建数据源
-        DataSource dataSource = ShardingDataSourceFactory.createDataSource(targetDataSources, shardingRuleConfiguration, new Properties());
+        DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(targetDataSources, Collections.singleton(shardingRuleConfiguration), new Properties());
         return dataSource;
     }
 
